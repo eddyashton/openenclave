@@ -15,6 +15,7 @@ Note that enclaves that are run in simulation mode are not protected by a truste
 Also note that simulation mode is subject to being fundamentally changed or removed in the future.
 
 ## How to install and use the SDK for Simulation mode
+
 Follow one of the docs below for your platform, _and skip the driver installation step (step #2)_:
 - [Ubuntu 16.04](install_oe_sdk-Ubuntu_16.04.md)
 - [Ubuntu 18.04](install_oe_sdk-Ubuntu_18.04.md)

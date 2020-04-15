@@ -49,13 +49,13 @@ make install DESTDIR=foo
 
 If you also specified a `CMAKE_INSTALL_PREFIX`, this would install the SDK to
 
-```
+```bash
 /foo/opt/openenclave
 ```
 
-## Create a redistributable SDK package
+## Create a redistributable Debian package
 
-To create a redistributable package (e.g. deb, rpm), use `cpack`. Specify
+To create a redistributable Debian package, use `cpack`. Specify
 the final installation prefix to cmake using the `CMAKE_INSTALL_PREFIX` variable
 as above. For example, to create a Debian package that will install the SDK to
 /opt/openenclave, run the following from your build subfolder:
