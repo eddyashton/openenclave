@@ -174,6 +174,19 @@ function Start-LocalPackagesDownload {
     Write-Output "Finished downloading all the packages"
 }
 
+function Get-WindowsRelease {
+    $releases = @{
+        17763 = "WinServer2019"
+        14393 = "WinServer2016"
+    }
+    $osBuild = [System.Environment]::OSVersion.Version.Build
+    $releaseName = $releases[$osBuild]
+    if (!$releaseName) {
+        Throw "Cannot find the Windows release name"
+    }
+    return $releaseName
+}
+
 function Start-ExecuteWithRetry {
     Param(
         [Parameter(Mandatory=$true)]
@@ -350,26 +363,11 @@ function Install-Git {
 }
 
 function Install-OpenSSL {
-    $installDir = $installDir = Join-Path $env:ProgramFiles "OpenSSL-Win64"
+    $installDir = Join-Path $env:ProgramFiles "OpenSSL-Win64"
     Install-Tool -InstallerPath $PACKAGES["openssl"]["local_file"] `
                  -InstallDirectory $installDir `
                  -ArgumentList @("/silent", "/eula=accept") `
-                 -EnvironmentPath @($installDir)
-
-    $binDir = Join-Path $installDir "bin"
-    $systemPath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
-    $currentPath = $env:PATH
-    if($binDir -notin $systemPath) {
-         $systemPath = "$binDir;$systemPath"
-    }
-    if($binDir -notin $currentPath) {
-         $currentPath = "$binDir;$currentPath"
-    }
-    $env:PATH = $currentPath
-    setx.exe /M PATH $systemPath
-    if($LASTEXITCODE) {
-        Throw "Failed to set the new system path"
-    }
+                 -EnvironmentPath @("$installDir\bin")
 }
 
 function Install-7Zip {
@@ -516,23 +514,38 @@ function Install-DCAP-Dependencies {
     Install-Tool -InstallerPath $PACKAGES["dcap"]["local_file"] `
                  -ArgumentList @('/auto', "$PACKAGES_DIRECTORY\Intel_SGX_DCAP")
 
+    $OS_VERSION = Get-WindowsRelease
     if (($LaunchConfiguration -eq "SGX1FLC") -or ($LaunchConfiguration -eq "SGX1FLC-NoDriver") -or ($DCAPClientType -eq "Azure"))
     {
         $drivers = @{
-            'sgx_base_dev' = @{
-                'zip_path'    = "$PACKAGES_DIRECTORY\Intel_SGX_DCAP\Intel SGX DCAP for Windows *\LC_driver_WinServer2016\Signed_*.zip"
-                'location'    = 'root\SgxLCDevice'
-                'description' = 'Intel(R) Software Guard Extensions Launch Configuration Service'
+            'WinServer2016' = @{
+                'sgx_base_dev' = @{
+                    'zip_path'    = "$PACKAGES_DIRECTORY\Intel_SGX_DCAP\Intel SGX DCAP for Windows *\LC_driver_${OS_VERSION}\Signed_*.zip"
+                    'location'    = 'root\SgxLCDevice'
+                    'description' = 'Intel(R) Software Guard Extensions Launch Configuration Service'
+                }
+                'sgx_dcap_dev' = @{
+                    'zip_path'    = "$PACKAGES_DIRECTORY\Intel_SGX_DCAP\Intel SGX DCAP for Windows *\DCAP_INF\${OS_VERSION}\Signed_*.zip"
+                    'location'    = 'root\SgxLCDevice_DCAP'
+                    'description' = 'Intel(R) Software Guard Extensions DCAP Components Device'
+                }
             }
-            'sgx_dcap_dev' = @{
-                'zip_path'    = "$PACKAGES_DIRECTORY\Intel_SGX_DCAP\Intel SGX DCAP for Windows *\DCAP_INF\WinServer2016\Signed_*.zip"
-                'location'    = 'root\SgxLCDevice_DCAP'
-                'description' = 'Intel(R) Software Guard Extensions DCAP Components Device'
+            'WinServer2019' = @{
+                'sgx_base' = @{
+                    'zip_path'    = "$PACKAGES_DIRECTORY\Intel_SGX_DCAP\Intel SGX DCAP for Windows *\LC_driver_${OS_VERSION}\Signed_*.zip"
+                    'location'    = 'root\SgxLCDevice'
+                    'description' = 'Intel(R) Software Guard Extensions Launch Configuration Service'
+                }
+                'sgx_dcap' = @{
+                    'zip_path'    = "$PACKAGES_DIRECTORY\Intel_SGX_DCAP\Intel SGX DCAP for Windows *\DCAP_INF\${OS_VERSION}\Signed_*.zip"
+                    'location'    = 'root\SgxLCDevice_DCAP'
+                    'description' = 'Intel(R) Software Guard Extensions DCAP Components Device'
+                }
             }
         }
         $devConBinaryPath = Get-DevconBinary
-        foreach($driver in $drivers.Keys) {
-            $zip = Get-Item $drivers[$driver]['zip_path']
+        foreach($driver in $drivers[${OS_VERSION}].Keys) {
+            $zip = Get-Item $drivers[${OS_VERSION}][$driver]['zip_path']
             if(!$zip) {
                 Throw "Cannot find the zile file with $driver"
             }
@@ -550,21 +563,21 @@ function Install-DCAP-Dependencies {
                 $inf
                 Throw "Multiple $driver.inf files found"
             }
-            # Check if the driver is already installed and delete it
-            $output = & $devConBinaryPath find "$($drivers[$driver]['location'])"
-            if($LASTEXITCODE) {
-                Throw "Failed searching for $driver driver"
-            }
-            $output | ForEach-Object {
-                if($_.Contains($drivers[$driver]['description'])) {
-                    Write-Output "Removing driver $($drivers[$driver]['location'])"
-                    Remove-DCAPDriver -Name $drivers[$driver]['location']
-                }
-            }
             if ($LaunchConfiguration -eq "SGX1FLC")
             {
-                Write-Output "Installing driver $($drivers[$driver]['location'])"
-                $install = & $devConBinaryPath install "$($inf.FullName)" $drivers[$driver]['location']
+                # Check if the driver is already installed and delete it
+                $output = & $devConBinaryPath find "$($drivers[${OS_VERSION}][$driver]['location'])"
+                if($LASTEXITCODE) {
+                    Throw "Failed searching for $driver driver"
+                }
+                $output | ForEach-Object {
+                    if($_.Contains($drivers[${OS_VERSION}][$driver]['description'])) {
+                        Write-Output "Removing driver $($drivers[${OS_VERSION}][$driver]['location'])"
+                        Remove-DCAPDriver -Name $drivers[${OS_VERSION}][$driver]['location']
+                    }
+                }
+                Write-Output "Installing driver $($drivers[${OS_VERSION}][$driver]['location'])"
+                $install = & $devConBinaryPath install "$($inf.FullName)" $drivers[${OS_VERSION}][$driver]['location']
                 if($LASTEXITCODE) {
                     Throw "Failed to install $driver driver"
                 }
@@ -601,6 +614,9 @@ function Install-DCAP-Dependencies {
         Write-Host "Installing Microsoft.Azure.DCAP library to $targetPath"
         pushd "$OE_NUGET_DIR\Microsoft.Azure.DCAP\tools"
         & ".\InstallAzureDCAP.ps1" $targetPath
+        if($LASTEXITCODE) {
+            Throw "Failed to install Azure DCAP Client"
+        }
         popd
     }
     if (($LaunchConfiguration -eq "SGX1FLC") -or ($LaunchConfiguration -eq "SGX1FLC-NoDriver") -or ($DCAPClientType -eq "Azure"))
@@ -615,7 +631,7 @@ function Install-DCAP-Dependencies {
         Throw "Failed to install nuget EnclaveCommonAPI"
     }
 
-    if ($LaunchConfiguration -eq "SGX1FLC")
+    if (($LaunchConfiguration -eq "SGX1FLC") -or (${OS_VERSION} -eq "WinServer2019"))
     {
         # Please refer to Intel's Windows DCAP documentation for this registry setting: https://download.01.org/intel-sgx/dcap-1.2/windows/docs/Intel_SGX_DCAP_Windows_SW_Installation_Guide.pdf
         New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\sgx_lc_msr\Parameters" -Name "SGX_Launch_Config_Optin" -Value 1 -PropertyType DWORD -Force

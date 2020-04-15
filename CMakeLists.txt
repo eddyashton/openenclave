@@ -62,11 +62,9 @@ if (IS_DIRECTORY "${PROJECT_SOURCE_DIR}/.git")
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
   # Install Git pre-commit hook
-  if (NOT WIN32)
-    file(
-      COPY scripts/pre-commit scripts/commit-msg
-      DESTINATION "${PROJECT_SOURCE_DIR}/.git/hooks")
-  endif ()
+  file(
+    COPY scripts/pre-commit scripts/commit-msg
+    DESTINATION "${PROJECT_SOURCE_DIR}/.git/hooks")
 endif ()
 
 # Generates `compile_commands.json` used by some developers. Only
@@ -263,16 +261,10 @@ if (LVI_MITIGATION MATCHES ControlFlow)
     install(FILES ./scripts/lvi-mitigation/install_lvi_mitigation_bindir
       PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
       DESTINATION ${CMAKE_INSTALL_BINDIR}/scripts/lvi-mitigation)
-    install(FILES ./scripts/lvi-mitigation/clang-7-lvi
+    install(FILES ./scripts/lvi-mitigation/generate_wrapper
       PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
       DESTINATION ${CMAKE_INSTALL_BINDIR}/scripts/lvi-mitigation)
-    install(FILES ./scripts/lvi-mitigation/clang++-7-lvi
-      PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
-      DESTINATION ${CMAKE_INSTALL_BINDIR}/scripts/lvi-mitigation)
-    install(FILES ./scripts/lvi-mitigation/g++-lvi
-      PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
-      DESTINATION ${CMAKE_INSTALL_BINDIR}/scripts/lvi-mitigation)
-    install(FILES ./scripts/lvi-mitigation/gcc-lvi
+    install(FILES ./scripts/lvi-mitigation/invoke_compiler
       PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
       DESTINATION ${CMAKE_INSTALL_BINDIR}/scripts/lvi-mitigation)
     install(FILES ./cmake/configure_lvi_mitigation_build.cmake

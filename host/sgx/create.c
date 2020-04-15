@@ -54,7 +54,7 @@ static char* get_fullpath(const char* path)
 #include "cpuid.h"
 #include "enclave.h"
 #include "exception.h"
-#include "sgx_u.h"
+#include "platform_u.h"
 #include "sgxload.h"
 
 #if !defined(OEHOSTMR)
@@ -77,8 +77,8 @@ static void _initialize_enclave_host()
 {
     oe_once(&_enclave_init_once, _initialize_exception_handling);
     oe_register_switchless_ocall_function_table();
-    oe_register_tee_ocall_function_table();
-    oe_register_sgx_ocall_function_table();
+    oe_register_core_ocall_function_table();
+    oe_register_platform_ocall_function_table();
     oe_register_syscall_ocall_function_table();
 }
 #endif // OEHOSTMR
@@ -221,7 +221,7 @@ static oe_result_t _add_control_pages(
         tcs->oentry = entry;
 
         /* FS segment: Used for thread-local variables.
-         * The reserved (unused) space in td_t is used for thread-local
+         * The reserved (unused) space in oe_sgx_td_t is used for thread-local
          * variables.
          * Since negative offsets are used with FS, FS must point to end of the
          * segment.
