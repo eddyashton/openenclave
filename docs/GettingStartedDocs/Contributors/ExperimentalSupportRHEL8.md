@@ -88,7 +88,6 @@ OE_SIMULATION=1 ctest
 You will see test logs similar to the following:
 
 ```bash
->>>>>>> Update docs
 Test project /home/youradminusername/openenclave/build
       Start   1: tests/aesm
 1/123 Test   #1: tests/aesm ...............................................................................................................   Passed    0.98 sec
