@@ -55,6 +55,8 @@ ansible-playbook scripts/ansible/oe-contributors-setup.yml
 To build first create a build directory ("build/" in the example below) and change into it.
 
 ```bash
+export CC=gcc
+export CXX=g++
 mkdir build/
 cd build/
 ```
