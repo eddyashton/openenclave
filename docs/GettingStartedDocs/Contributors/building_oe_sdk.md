@@ -41,21 +41,12 @@ Please refer to the following [documentation](/docs/GettingStartedDocs/SGXSuppor
    The links below contain instructions on how to set up Open Enclave SDK environment for a given mode.
 
 On Ubuntu 1604 or Ubuntu 1804
-<<<<<<< HEAD
   - [Set up Open Enclave SDK for SGX1+FLC](SGX1FLCGettingStarted.md)
   - [Set up Open Enclave SDK for SGX1](SGX1GettingStarted.md)
   - [Set up Open Enclave SDK for simulation mode](SimulatorGettingStarted.md)
 
 On RHEL8
  - [Set up Open Enclave SDK on RHEL8](ExperimentalSupportRHEL8.md)
-=======
-  - [Setup Open Enclave SDK for SGX1+FLC](SGX1FLCGettingStarted.md)
-  - [Setup Open Enclave SDK for SGX1](SGX1GettingStarted.md)
-  - [Setup Open Enclave SDK for simulation mode](SimulatorGettingStarted.md)
-
-On RHEL8
- - [Set up of Open Enclave SDK on RHEL8](ExperimentalSupportRHEL8.md)
->>>>>>> Update docs
 
 On Windows
  - [Set up Open Enclave SDK for SGX1+FLC](WindowsSGX1FLCGettingStarted.md)
