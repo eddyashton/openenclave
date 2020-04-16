@@ -240,6 +240,10 @@ static oe_tcb_level_status_t _parse_tcb_status(
         status.fields.qe_identity_out_of_date = 1;
         status.fields.configuration_needed = 1;
     }
+    // Due to sgx LVI update, UpToDate tcb would be marked as SWHardeningNeeded,
+    // as sgx cannot tell if enclave writer has implemented SW mitigations for
+    // LVI. Set status SWHardeningNeeded as up_to_date for now to make sure
+    // services for those tcbs are not affected.
     else if (_json_str_equal(str, length, "SWHardeningNeeded"))
     {
         status.fields.up_to_date = 1;
