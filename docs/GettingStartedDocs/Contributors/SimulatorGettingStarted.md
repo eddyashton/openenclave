@@ -39,12 +39,6 @@ mkdir build/
 cd build/
 ```
 
-Install libsgx-enclave-common
-
-```bash
- sudo apt-get libsgx_enclave_common
- ```
-
 Then run `cmake` to configure the build and generate the make files and build:
 
 ```bash
